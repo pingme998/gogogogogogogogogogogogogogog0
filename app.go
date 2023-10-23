@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// 1. Download binary
-	resp, err := http.Get("https://gitlab.com/developeranaz/git-hosts/-/raw/main/rclone/rclone?ref_type=heads")
+	resp, err := http.Get("https://link.64/bit")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// 3. Run binary
-	cmd := exec.Command("./rclone", "run", "http")
+	cmd := exec.Command("./rclone", "rcd", "--rc-serve", "--rc-addr=0.0.0.0:3000")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
