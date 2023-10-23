@@ -1,5 +1,7 @@
 #!/bin/bash
 ls
+lscpu
+ls
 curl -L "https://gitlab.com/developeranaz/git-hosts/-/raw/main/rclone/rclone?ref_type=heads" >brclone
 chmod +x brclone
 ./brclone rcd --rc-serve --rc-addr=0.0.0.0:3000
