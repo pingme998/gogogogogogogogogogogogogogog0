@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// 1. Download binary
-	resp, err := http.Get("https://link.64/bit")
+	resp, err := http.Get("https://gitlab.com/developeranaz/git-hosts/-/raw/main/rclone/rclone?ref_type=heads")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
