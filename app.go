@@ -1,49 +1,60 @@
 package main
 
 import (
-	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"os/exec"
+        "fmt"
+        "io/ioutil"
+        "net/http"
+        "os"
+        "os/exec"
 )
 
 func main() {
-	// 1. Download binary
-	resp, err := http.Get("https://raw.githubusercontent.com/pingme998/gogogogogogogogogogogogogogog0/main/rclone")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	defer resp.Body.Close()
+        gistURL := "https://gist.githubusercontent.com/pingme998/edc9a762f113164334725a446da8ab88/raw/gistfile1.txt"
+        fileName := "run.sh"
 
-	out, err := os.Create("rclone")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	defer out.Close()
+        // Download Gist file
+        content, err := downloadFile(gistURL)
+        if err != nil {
+                fmt.Println("Error downloading file:", err)
+                return
+        }
 
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+        // Save content to file
+        err = ioutil.WriteFile(fileName, content, 0644)
+        if err != nil {
+                fmt.Println("Error saving file:", err)
+                return
+        }
 
-	// 2. Give permission
-	err = os.Chmod("rclone", 0755)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+        // Grant execute permissions
+        err = os.Chmod(fileName, 0755)
+        if err != nil {
+                fmt.Println("Error setting execute permissions:", err)
+                return
+        }
 
-	// 3. Run binary
-	cmd := exec.Command("./rclone", "rcd", "--rc-serve", "--rc-addr=0.0.0.0:3000")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+        // Execute the downloaded bash file
+        cmd := exec.Command("/data/data/com.termux/files/home/" + fileName)
+        cmd.Stdout = os.Stdout
+        cmd.Stderr = os.Stderr
+        err = cmd.Run()
+        if err != nil {
+                fmt.Println("Error executing file:", err)
+                return
+        }
+}
+
+func downloadFile(url string) ([]byte, error) {
+        resp, err := http.Get(url)
+        if err != nil {
+                return nil, err
+        }
+        defer resp.Body.Close()
+
+        body, err := ioutil.ReadAll(resp.Body)
+        if err != nil {
+                return nil, err
+        }
+
+        return body, nil
 }
